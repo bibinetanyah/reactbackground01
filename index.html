@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Synapse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/framer-motion@11/dist/framer-motion.js" crossorigin></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 40px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: transparent;
+    }
+
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .nav-cta {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 9px 22px;
+      border-radius: 999px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.04);
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+    .nav-cta:hover {
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,1);
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    /* HERO SECTION */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      background: #000;
+    }
+
+    /* VIDEO WRAPPER */
+    .video-wrapper {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      height: 80vh;
+      bottom: 35vh;
+      width: auto;
+      min-width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.1s;
+    }
+
+    .video-wrapper.visible {
+      opacity: 1;
+    }
+
+    .hero-video {
+      height: 80vh;
+      width: auto;
+      min-width: 100vw;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* NAV LABELS */
+    .corner-label {
+      position: absolute;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.7rem;
+      font-weight: 300;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+    }
+    .corner-label-br {
+      bottom: calc(35vh + 16px);
+      right: 36px;
+    }
+    .corner-label-bl {
+      bottom: calc(35vh + 16px);
+      left: 36px;
+    }
+
+    /* MARQUEE */
+    .marquee-section {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 35vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      overflow: hidden;
+      opacity: 0;
+    }
+
+    .marquee-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.58rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      padding: 0 40px;
+      margin-bottom: 24px;
+    }
+
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marquee-scroll 28s linear infinite;
+      gap: 0;
+    }
+
+    .marquee-track:hover {
+      animation-play-state: paused;
+    }
+
+    @keyframes marquee-scroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .marquee-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 48px;
+      opacity: 0.4;
+      filter: grayscale(1);
+      transition: opacity 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .marquee-item:hover {
+      opacity: 0.75;
+    }
+
+    .marquee-item svg {
+      height: 22px;
+      width: auto;
+      fill: #fff;
+    }
+
+    .marquee-item span {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: #fff;
+    }
+
+    .divider-line {
+      position: absolute;
+      left: 0; right: 0;
+      bottom: 35vh;
+      height: 1px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* STAR ACCENT */
+    .star-accent {
+      position: absolute;
+      top: 50%;
+      right: 36px;
+      transform: translateY(-50%);
+      color: rgba(255,255,255,0.3);
+      font-size: 1.2rem;
+      animation: star-spin 12s linear infinite;
+    }
+
+    @keyframes star-spin {
+      from { transform: translateY(-50%) rotate(0deg); }
+      to   { transform: translateY(-50%) rotate(360deg); }
+    }
+
+    /* SCROLL INDICATOR */
+    .scroll-hint {
+      position: absolute;
+      bottom: calc(35vh + 32px);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scroll-hint-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.3));
+      animation: scroll-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes scroll-pulse {
+      0%, 100% { opacity: 0.3; transform: scaleY(1); }
+      50%       { opacity: 1;   transform: scaleY(1.2); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-logo">Synapse</div>
+    <a href="#" class="nav-cta">Get Started</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+
+    <!-- VIDEO WRAPPER -->
+    <div class="video-wrapper" id="videoWrapper">
+      <video
+        id="heroVideo"
+        class="hero-video"
+        muted
+        autoplay
+        loop
+        playsinline
+      ></video>
+    </div>
+
+    <!-- CORNER LABELS -->
+    <span class="corner-label corner-label-bl">Neural Interface</span>
+    <span class="corner-label corner-label-br">Est. 2026</span>
+
+    <!-- STAR ACCENT -->
+    <div class="star-accent">✳</div>
+
+    <!-- DIVIDER -->
+    <div class="divider-line"></div>
+
+    <!-- MARQUEE SECTION -->
+    <div class="marquee-section" id="marqueeSection">
+      <p class="marquee-label">Trusted by forward-thinking teams</p>
+      <div class="marquee-track" id="marqueeTrack">
+        <!-- Set 1 -->
+        <div class="marquee-item"><span>Meridian</span></div>
+        <div class="marquee-item">
+          <svg viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg">
+            <text x="0" y="20" font-family="serif" font-size="20" fill="white" font-weight="300">Vanta</text>
+          </svg>
+        </div>
+        <div class="marquee-item"><span>Orbitex</span></div>
+        <div class="marquee-item"><span>Luma</span></div>
+        <div class="marquee-item"><span>Parallax</span></div>
+        <div class="marquee-item"><span>Crestline</span></div>
+        <div class="marquee-item"><span>Axiom</span></div>
+        <div class="marquee-item"><span>Drift</span></div>
+        <div class="marquee-item"><span>Volta</span></div>
+        <div class="marquee-item"><span>Sable</span></div>
+        <!-- Set 2 (duplicate) -->
+        <div class="marquee-item"><span>Meridian</span></div>
+        <div class="marquee-item">
+          <svg viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg">
+            <text x="0" y="20" font-family="serif" font-size="20" fill="white" font-weight="300">Vanta</text>
+          </svg>
+        </div>
+        <div class="marquee-item"><span>Orbitex</span></div>
+        <div class="marquee-item"><span>Luma</span></div>
+        <div class="marquee-item"><span>Parallax</span></div>
+        <div class="marquee-item"><span>Crestline</span></div>
+        <div class="marquee-item"><span>Axiom</span></div>
+        <div class="marquee-item"><span>Drift</span></div>
+        <div class="marquee-item"><span>Volta</span></div>
+        <div class="marquee-item"><span>Sable</span></div>
+      </div>
+    </div>
+
+  </section>
+
+  <script>
+    // ── HLS VIDEO PLAYER (memoized-like: init once, cleanup on unload) ──
+    const VIDEO_SRC = 'https://stream.mux.com/9JXDljEVWYwWu01PUkAemafDugK89o01BR6zqJ3aS9u00A.m3u8';
+    const video = document.getElementById('heroVideo');
+    const videoWrapper = document.getElementById('videoWrapper');
+    let hlsInstance = null;
+
+    function initHLS() {
+      if (Hls.isSupported()) {
+        hlsInstance = new Hls({
+          enableWorker: true,
+          lowLatencyMode: false,
+          backBufferLength: 90,
+        });
+        hlsInstance.loadSource(VIDEO_SRC);
+        hlsInstance.attachMedia(video);
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play().catch(() => {});
+        });
+        hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                hlsInstance.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                hlsInstance.recoverMediaError();
+                break;
+              default:
+                destroyHLS();
+                break;
+            }
+          }
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        // Safari native HLS
+        video.src = VIDEO_SRC;
+        video.addEventListener('loadedmetadata', () => {
+          video.play().catch(() => {});
+        });
+      }
+    }
+
+    function destroyHLS() {
+      if (hlsInstance) {
+        hlsInstance.destroy();
+        hlsInstance = null;
+      }
+    }
+
+    // Cleanup on page hide / unload
+    window.addEventListener('pagehide', destroyHLS);
+    window.addEventListener('beforeunload', destroyHLS);
+
+    // ── FADE-IN ANIMATIONS (Framer-motion-like via CSS + IntersectionObserver) ──
+    function fadeInElement(el, delay = 0) {
+      el.style.transition = `opacity 1.2s cubic-bezier(0.22,1,0.36,1) ${delay}ms`;
+      el.style.opacity = '0';
+      setTimeout(() => {
+        el.style.opacity = '1';
+      }, 80 + delay);
+    }
+
+    // Video fade-in on canplay
+    video.addEventListener('canplay', () => {
+      if (!videoWrapper.classList.contains('visible')) {
+        videoWrapper.classList.add('visible');
+        fadeInElement(videoWrapper, 0);
+      }
+    }, { once: true });
+
+    // Fallback: fade in wrapper after 800ms regardless
+    setTimeout(() => {
+      if (!videoWrapper.classList.contains('visible')) {
+        videoWrapper.classList.add('visible');
+        fadeInElement(videoWrapper, 0);
+      }
+    }, 800);
+
+    // Marquee fade-in
+    const marqueeSection = document.getElementById('marqueeSection');
+    fadeInElement(marqueeSection, 600);
+
+    // ── INIT ──
+    initHLS();
+  </script>
+</body>
+</html>
